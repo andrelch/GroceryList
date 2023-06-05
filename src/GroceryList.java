@@ -61,6 +61,8 @@ public class GroceryList implements ActionListener {
     static double actionConfidence = 0;
     static String action = null;
 
+    static String randomIngredient = null;
+
     public GroceryList(){
         prepareGUI();
     }
@@ -147,19 +149,19 @@ public class GroceryList implements ActionListener {
 //        headerLabel.setText("Control in action: Button");
 
         JButton okButton = new JButton("Submit");
-//        JButton submitButton = new JButton("Print");
+        JButton randomButton = new JButton("Random");
         JButton clearButton = new JButton("Clear");
 
         okButton.setActionCommand("Submit");
-//        submitButton.setActionCommand("Print");
+        randomButton.setActionCommand("Random");
         clearButton.setActionCommand("Clear");
 
         okButton.addActionListener(new ButtonClickListener());
-//        submitButton.addActionListener(new ButtonClickListener());
+        randomButton.addActionListener(new ButtonClickListener());
         clearButton.addActionListener(new ButtonClickListener());
 
         buttonPanel.add(okButton);
-//        buttonPanel.add(submitButton);
+        buttonPanel.add(randomButton);
         buttonPanel.add(clearButton);
 
         mainFrame.setVisible(true);
@@ -167,12 +169,12 @@ public class GroceryList implements ActionListener {
 
     public static void pull() throws ParseException {
         String output = "";
-        String totalJson="";
+        String totalJson = "";
         try {
 
             String input = inputText;
 
-            String URLFormatter = "https://api.wit.ai/message?v=20230604&q=" + URLEncoder.encode(input, StandardCharsets.UTF_8);
+            String URLFormatter = "https://api.wit.ai/message?v=20230605&q=" + URLEncoder.encode(input, StandardCharsets.UTF_8);
 
             URL url = new URL(URLFormatter);
 
@@ -211,10 +213,10 @@ public class GroceryList implements ActionListener {
         try {
             //System.out.println(jsonObject.get("name"));
 
-            org.json.simple.JSONObject entites =(org.json.simple.JSONObject) jsonObject.get("entities");
+            org.json.simple.JSONObject entities =(org.json.simple.JSONObject) jsonObject.get("entities");
             org.json.simple.JSONArray intents =(org.json.simple.JSONArray) jsonObject.get("intents");
 
-            org.json.simple.JSONArray agendaEntry =(org.json.simple.JSONArray) entites.get("wit$agenda_entry:agenda_entry");
+            org.json.simple.JSONArray agendaEntry =(org.json.simple.JSONArray) entities.get("wit$agenda_entry:agenda_entry");
 
 //            double parseConfidence = 0;
 //            String term = null;
@@ -252,7 +254,6 @@ public class GroceryList implements ActionListener {
                 System.out.println(groceryList);
             }
             if(Objects.equals(action, "remove_item")){
-
                 groceryList.remove(term);
 
                 processTextArea.setText("Identified keyword: " + term + "\n" + "Confidence of parsing the keyword: " + parseConfidence + "\n" + "\n" + "Identified action: " + action + "\n" + "Confidence: " + actionConfidence);
@@ -271,9 +272,71 @@ public class GroceryList implements ActionListener {
             e.printStackTrace();
         }
 
+    }
+
+    public static void random() throws ParseException{
+
+        String output = "";
+        String totalJson = "";
+        try {
+
+            String URLFormatter = "https://www.themealdb.com/api/json/v1/1/random.php";
+
+            URL url = new URL(URLFormatter);
+
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Accept", "application/json");
+            conn.setRequestProperty("Authorization", "1");
+
+            if (conn.getResponseCode() != 200) {
+
+                throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+            }
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(
+                    (conn.getInputStream())));
 
 
+            System.out.println("Output from Server .... \n");
+            while ((output = br.readLine()) != null) {
+                //System.out.println(output);
+                totalJson+=output;
+            }
 
+            conn.disconnect();
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        JSONParser parser = new JSONParser();
+        org.json.simple.JSONObject jsonObject = (org.json.simple.JSONObject) parser.parse(totalJson);
+
+        try {
+            org.json.simple.JSONArray meals =(org.json.simple.JSONArray) jsonObject.get("meals");
+
+            for (int i = 0; i < meals.size(); i++) {
+                JSONObject temp;
+                temp = (JSONObject) meals.get(i);
+
+                randomIngredient = (String) temp.get("strIngredient1");
+            }
+
+            System.out.println("Random Ingredient: " + randomIngredient);
+
+            groceryList.add(randomIngredient);
+            outputTextArea.setText(String.valueOf(String.valueOf(groceryList)));
+            System.out.println(groceryList);
+
+        }
+
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String args[]) throws ParseException {
@@ -300,7 +363,13 @@ public class GroceryList implements ActionListener {
                     throw new RuntimeException(ex);
                 }
 
-            } else if (command.equals("Print")) {
+            } else if (command.equals("Random")) {
+
+                try {
+                    random();
+                } catch (ParseException ex) {
+                    throw new RuntimeException(ex);
+                }
 
             } else if (command.equals("Clear")) {
                 groceryList.clear();
