@@ -24,7 +24,6 @@ import org.json.simple.parser.ParseException;
 
 import javax.swing.*;
 
-// Program for print data in JSON format.
 public class GroceryList implements ActionListener {
 
     static ArrayList <String> groceryList = new ArrayList<String>();
@@ -33,21 +32,13 @@ public class GroceryList implements ActionListener {
     private int HEIGHT=600;
 
     private JFrame mainFrame;
-
     private JLabel guideLabel;
-//    private JLabel headerLabel;
-//    private JLabel urlLabel;
-//    private JLabel searchLabel;
     private static JTextArea outputTextArea;
-//    private JPanel barPanel;
     private JPanel buttonPanel;
     private JPanel outputPanel;
     private JPanel outputPanelIn;
     private JPanel textPanel;
     private JPanel textPanelIn;
-//    private JMenuBar menuBar;
-//    private JMenu file, edit, help;
-//    private JMenuItem cut, copy, paste, selectAll;
     private JTextArea inputTextArea;
     private static JTextArea processTextArea;
     private JScrollPane scrollPane;
@@ -57,7 +48,6 @@ public class GroceryList implements ActionListener {
 
     static double parseConfidence = 0;
     static String term = null;
-
     static double actionConfidence = 0;
     static String action = null;
 
@@ -72,30 +62,8 @@ public class GroceryList implements ActionListener {
         mainFrame.setSize(WIDTH, HEIGHT);
         mainFrame.setLayout(new GridLayout(2, 1));
 
-//        cut = new JMenuItem("cut");
-//        copy = new JMenuItem("copy");
-//        paste = new JMenuItem("paste");
-//        selectAll = new JMenuItem("selectAll");
-//        cut.addActionListener(this);
-//        copy.addActionListener(this);
-//        paste.addActionListener(this);
-//        selectAll.addActionListener(this);
-
-//        menuBar = new JMenuBar();
-//        file = new JMenu("File");
-//        edit = new JMenu("Edit");
-//        help = new JMenu("Help");
-//        edit.add(cut);
-//        edit.add(copy);
-//        edit.add(paste);
-//        edit.add(selectAll);
-//        menuBar.add(file);
-//        menuBar.add(edit);
-//        menuBar.add(help);
-
         inputTextArea = new JTextArea();
         inputTextArea.setBorder(BorderFactory.createTitledBorder("Enter Request:"));
-        //textAreaURL.setBounds(50, 5, WIDTH-100, HEIGHT-50);
         processTextArea = new JTextArea();
         processTextArea.setBorder(BorderFactory.createTitledBorder("Process Details:"));
         textPanel = new JPanel(new BorderLayout());
@@ -106,48 +74,32 @@ public class GroceryList implements ActionListener {
         textPanel.add(textPanelIn, BorderLayout.CENTER);
         textPanel.add(buttonPanel,BorderLayout.SOUTH);
 
-//        headerLabel = new JLabel("", JLabel.CENTER);
         guideLabel = new JLabel("<html><div style='text-align: center;'>This is a program that uses a Natural Language Processing API to process requests.<br>You can add, remove, and order items from the grocery list.</html>", JLabel.CENTER);
-//        searchLabel = new JLabel("", JLabel.CENTER);
         outputTextArea = new JTextArea();
         scrollPane = new JScrollPane(outputTextArea);
         scrollPane.setBorder(BorderFactory.createTitledBorder("Grocery List:"));
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
-        //frame.getContentPane().add(scrollableTextArea);
-
         outputPanelIn = new JPanel(new GridLayout(1,2));
         outputPanelIn.add(guideLabel);
-//        outputPanelIn.add(urlLabel);
-//        outputPanelIn.add(searchLabel);
+
         outputPanel = new JPanel(new BorderLayout());
         outputPanel.add(outputPanelIn, BorderLayout.NORTH);
         outputPanel.add(scrollPane,BorderLayout.CENTER);
 
-//        mainFrame.add(menuBar);
-//        mainFrame.setJMenuBar(menuBar);
         mainFrame.add(textPanel);
         mainFrame.add(outputPanel);
         mainFrame.setVisible(true);
-        //statusLabel.setSize(350, 100);
 
         mainFrame.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent windowEvent) {
                 System.exit(0);
             }
         });
-
-        //barPanel = new JPanel(new GridLayout(2,1));
-        //barPanel.add(buttonPanel);
-
-        // mainFrame.add(headerLabel);
-        //mainFrame.add(buttonPanel);
     }
 
     private void showGrocery() {
-//        headerLabel.setText("Control in action: Button");
-
         JButton okButton = new JButton("Submit");
         JButton randomButton = new JButton("Random");
         JButton clearButton = new JButton("Clear");
@@ -171,7 +123,6 @@ public class GroceryList implements ActionListener {
         String output = "";
         String totalJson = "";
         try {
-
             String input = inputText;
 
             String URLFormatter = "https://api.wit.ai/message?v=20230605&q=" + URLEncoder.encode(input, StandardCharsets.UTF_8);
@@ -185,14 +136,14 @@ public class GroceryList implements ActionListener {
 
             if (conn.getResponseCode() != 200) {
 
-                throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+                throw new RuntimeException("Failed: HTTP error code : " + conn.getResponseCode());
             }
 
             BufferedReader br = new BufferedReader(new InputStreamReader(
                     (conn.getInputStream())));
 
 
-            System.out.println("Output from Server .... \n");
+            System.out.println("\nOutput from Server...\n");
             while ((output = br.readLine()) != null) {
                     //System.out.println(output);
                 totalJson+=output;
@@ -211,33 +162,25 @@ public class GroceryList implements ActionListener {
         org.json.simple.JSONObject jsonObject = (org.json.simple.JSONObject) parser.parse(totalJson);
 
         try {
-            //System.out.println(jsonObject.get("name"));
-
             org.json.simple.JSONObject entities =(org.json.simple.JSONObject) jsonObject.get("entities");
             org.json.simple.JSONArray intents =(org.json.simple.JSONArray) jsonObject.get("intents");
 
             org.json.simple.JSONArray agendaEntry =(org.json.simple.JSONArray) entities.get("wit$agenda_entry:agenda_entry");
 
-//            double parseConfidence = 0;
-//            String term = null;
-//
-//            double actionConfidence = 0;
-//            String action = null;
-
-            for (int i = 0; i < agendaEntry.size(); i++) {
+            for (Object o : agendaEntry) {
                 JSONObject temp;
-                temp = (JSONObject) agendaEntry.get(i);
+                temp = (JSONObject) o;
 
                 parseConfidence = (double) temp.get("confidence");
-                term = (String)temp.get("value");
+                term = (String) temp.get("value");
             }
 
-            for (int i = 0; i < intents.size(); i++) {
+            for (Object intent : intents) {
                 JSONObject temp;
-                temp = (JSONObject) intents.get(i);
+                temp = (JSONObject) intent;
 
                 actionConfidence = (double) temp.get("confidence");
-                action = (String)temp.get("name");
+                action = (String) temp.get("name");
             }
 
             System.out.println("Parse Confidence: " + parseConfidence);
@@ -291,14 +234,14 @@ public class GroceryList implements ActionListener {
 
             if (conn.getResponseCode() != 200) {
 
-                throw new RuntimeException("Failed : HTTP error code : " + conn.getResponseCode());
+                throw new RuntimeException("Failed: HTTP error code : " + conn.getResponseCode());
             }
 
             BufferedReader br = new BufferedReader(new InputStreamReader(
                     (conn.getInputStream())));
 
 
-            System.out.println("Output from Server .... \n");
+            System.out.println("\nOutput from Server...\n");
             while ((output = br.readLine()) != null) {
                 //System.out.println(output);
                 totalJson+=output;
@@ -319,9 +262,9 @@ public class GroceryList implements ActionListener {
         try {
             org.json.simple.JSONArray meals =(org.json.simple.JSONArray) jsonObject.get("meals");
 
-            for (int i = 0; i < meals.size(); i++) {
+            for (Object meal : meals) {
                 JSONObject temp;
-                temp = (JSONObject) meals.get(i);
+                temp = (JSONObject) meal;
 
                 randomIngredient = (String) temp.get("strIngredient1");
             }
@@ -353,33 +296,30 @@ public class GroceryList implements ActionListener {
         public void actionPerformed(ActionEvent e) {
             String command = e.getActionCommand();
 
-            if (command.equals("Submit")) {
-
-                inputText = inputTextArea.getText();
-
-                try {
-                    pull();
-                } catch (ParseException ex) {
-                    throw new RuntimeException(ex);
+            switch (command) {
+                case "Submit" -> {
+                    inputText = inputTextArea.getText();
+                    try {
+                        pull();
+                    } catch (ParseException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
-
-            } else if (command.equals("Random")) {
-
-                try {
-                    random();
-                } catch (ParseException ex) {
-                    throw new RuntimeException(ex);
+                case "Random" -> {
+                    try {
+                        random();
+                    } catch (ParseException ex) {
+                        throw new RuntimeException(ex);
+                    }
                 }
+                case "Clear" -> {
+                    groceryList.clear();
+                    inputTextArea.setText("");
+                    processTextArea.setText("");
+                    outputTextArea.setText("");
 
-            } else if (command.equals("Clear")) {
-                groceryList.clear();
-
-                //outputTextArea.setText("Clear Button clicked.");
-                inputTextArea.setText("");
-                processTextArea.setText("");
-//                urlLabel.setText("");
-//                searchLabel.setText("");
-                outputTextArea.setText("");
+                    System.out.println("\nCleared\n");
+                }
             }
         }
     }
